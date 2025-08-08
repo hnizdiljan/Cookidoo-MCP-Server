@@ -1,0 +1,40 @@
+{
+  "cSpell.words": [
+    "aiohttp",
+    "aioresponses",
+    "asyncio",
+    "capsolver",
+    "Cookidoo",
+    "CUSTOMLIST",
+    "customlists",
+    "dotenv",
+    "errmsg",
+    "gaierror",
+    "headful",
+    "jlesage",
+    "kasmvnc",
+    "levelname",
+    "MANAGEDLIST",
+    "managedlists",
+    "miaucl",
+    "mypy",
+    "networkidle",
+    "novnc",
+    "recaptcha",
+    "swiftshader",
+    "venv",
+    "Vorwerk"
+  ],
+  "[python]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.codeActionsOnSave": {
+      "source.fixAll": "explicit"
+    }
+  },
+  "python.testing.pytestArgs": [
+    "-v",
+    "--color=yes"
+  ],
+  "python.analysis.typeCheckingMode": "basic"
+}
