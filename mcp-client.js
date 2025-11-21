@@ -2,26 +2,140 @@
 
 /**
  * Cookidoo MCP Client
- * Model Context Protocol client pro Cursor
+ * Model Context Protocol client pro Cursor s automatickým přihlášením
  */
 
-const { Server } = require('@modelcontextprotocol/sdk/server/index.js');
-const { StdioServerTransport } = require('@modelcontextprotocol/sdk/server/stdio.js');
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import fs from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Konfigurace
-const COOKIDOO_API_URL = process.env.COOKIDOO_API_URL || 'http://localhost:5000/api/v1';
-const COOKIDOO_TOKEN = process.env.COOKIDOO_TOKEN;
+const COOKIDOO_API_URL = process.env.COOKIDOO_API_URL || 'http://localhost:5555/api/v1';
+const COOKIDOO_EMAIL = process.env.COOKIDOO_EMAIL;
+const COOKIDOO_PASSWORD = process.env.COOKIDOO_PASSWORD;
+const TOKEN_CACHE_FILE = path.join(__dirname, '.cookidoo-token.json');
 
-if (!COOKIDOO_TOKEN) {
-  console.error('❌ COOKIDOO_TOKEN environment variable is required');
-  process.exit(1);
+// Globální proměnná pro token
+let currentToken = null;
+let tokenExpiresAt = null;
+
+/**
+ * Načte uložený token ze souboru
+ */
+async function loadCachedToken() {
+  try {
+    const data = await fs.readFile(TOKEN_CACHE_FILE, 'utf-8');
+    const cached = JSON.parse(data);
+
+    // Ověř, že token není expirován
+    if (cached.expiresAt && new Date(cached.expiresAt) > new Date()) {
+      console.error('✅ Načten cachovaný token');
+      return cached;
+    } else {
+      console.error('⚠️  Cachovaný token expiroval');
+      return null;
+    }
+  } catch (error) {
+    // Soubor neexistuje nebo je poškozený
+    return null;
+  }
+}
+
+/**
+ * Uloží token do souboru
+ */
+async function saveCachedToken(token, expiresIn) {
+  try {
+    const expiresAt = new Date(Date.now() + expiresIn * 1000);
+    const cached = {
+      accessToken: token,
+      expiresAt: expiresAt.toISOString(),
+      savedAt: new Date().toISOString()
+    };
+
+    await fs.writeFile(TOKEN_CACHE_FILE, JSON.stringify(cached, null, 2), 'utf-8');
+    console.error('💾 Token uložen do cache');
+  } catch (error) {
+    console.error('⚠️  Nepodařilo se uložit token:', error.message);
+  }
+}
+
+/**
+ * Přihlásí se do Cookidoo pomocí emailu a hesla
+ */
+async function login() {
+  console.error('🔐 Přihlašování do Cookidoo...');
+
+  if (!COOKIDOO_EMAIL || !COOKIDOO_PASSWORD) {
+    console.error('❌ COOKIDOO_EMAIL a COOKIDOO_PASSWORD environment proměnné jsou povinné');
+    process.exit(1);
+  }
+
+  try {
+    const response = await fetch(`${COOKIDOO_API_URL}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email: COOKIDOO_EMAIL,
+        password: COOKIDOO_PASSWORD
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Přihlášení selhalo (${response.status}): ${errorText}`);
+    }
+
+    const data = await response.json();
+
+    currentToken = data.accessToken;
+    tokenExpiresAt = new Date(Date.now() + data.expiresIn * 1000);
+
+    // Uložit do cache
+    await saveCachedToken(data.accessToken, data.expiresIn);
+
+    console.error(`✅ Přihlášení úspěšné (token vyprší: ${tokenExpiresAt.toLocaleString()})`);
+
+    return data.accessToken;
+  } catch (error) {
+    console.error(`❌ Chyba při přihlášení: ${error.message}`);
+    process.exit(1);
+  }
+}
+
+/**
+ * Získá platný token (z cache nebo novým přihlášením)
+ */
+async function getValidToken() {
+  // Pokud máme platný token v paměti, použij ho
+  if (currentToken && tokenExpiresAt && tokenExpiresAt > new Date()) {
+    return currentToken;
+  }
+
+  // Zkus načíst z cache
+  const cached = await loadCachedToken();
+  if (cached) {
+    currentToken = cached.accessToken;
+    tokenExpiresAt = new Date(cached.expiresAt);
+    return currentToken;
+  }
+
+  // Přihlas se
+  return await login();
 }
 
 // MCP Server instance
 const server = new Server(
   {
     name: "cookidoo-mcp-server",
-    version: "1.0.0"
+    version: "2.0.0"
   },
   {
     capabilities: {
@@ -41,13 +155,13 @@ server.setRequestHandler('tools/list', async () => {
         inputSchema: {
           type: "object",
           properties: {
-            search: { 
-              type: "string", 
-              description: "Vyhledávací text pro filtrování receptů" 
+            search: {
+              type: "string",
+              description: "Vyhledávací text pro filtrování receptů"
             },
-            limit: { 
-              type: "number", 
-              description: "Maximální počet receptů (výchozí 10)" 
+            limit: {
+              type: "number",
+              description: "Maximální počet receptů (výchozí 10)"
             }
           }
         }
@@ -58,8 +172,8 @@ server.setRequestHandler('tools/list', async () => {
         inputSchema: {
           type: "object",
           properties: {
-            id: { 
-              type: "string", 
+            id: {
+              type: "string",
               description: "ID receptu"
             }
           },
@@ -68,17 +182,17 @@ server.setRequestHandler('tools/list', async () => {
       },
       {
         name: "create_recipe",
-        description: "Vytvoří nový recept",
+        description: "Vytvoří nový recept s Thermomix parametry",
         inputSchema: {
           type: "object",
           properties: {
-            name: { 
-              type: "string", 
-              description: "Název receptu" 
+            name: {
+              type: "string",
+              description: "Název receptu"
             },
-            description: { 
-              type: "string", 
-              description: "Popis receptu" 
+            description: {
+              type: "string",
+              description: "Popis receptu"
             },
             ingredients: {
               type: "array",
@@ -135,21 +249,21 @@ server.setRequestHandler('tools/list', async () => {
                 required: ["text", "order"]
               }
             },
-            preparationTimeMinutes: { 
-              type: "number", 
-              description: "Čas přípravy v minutách" 
+            preparationTimeMinutes: {
+              type: "number",
+              description: "Čas přípravy v minutách"
             },
-            cookingTimeMinutes: { 
-              type: "number", 
-              description: "Čas vaření v minutách" 
+            cookingTimeMinutes: {
+              type: "number",
+              description: "Čas vaření v minutách"
             },
-            portions: { 
-              type: "number", 
-              description: "Počet porcí" 
+            portions: {
+              type: "number",
+              description: "Počet porcí"
             },
-            difficulty: { 
-              type: "number", 
-              description: "Obtížnost (1-5)" 
+            difficulty: {
+              type: "number",
+              description: "Obtížnost (1-5)"
             },
             tags: {
               type: "array",
@@ -166,9 +280,9 @@ server.setRequestHandler('tools/list', async () => {
         inputSchema: {
           type: "object",
           properties: {
-            limit: { 
-              type: "number", 
-              description: "Maximální počet kolekcí (výchozí 10)" 
+            limit: {
+              type: "number",
+              description: "Maximální počet kolekcí (výchozí 10)"
             }
           }
         }
@@ -179,13 +293,13 @@ server.setRequestHandler('tools/list', async () => {
         inputSchema: {
           type: "object",
           properties: {
-            name: { 
-              type: "string", 
-              description: "Název kolekce" 
+            name: {
+              type: "string",
+              description: "Název kolekce"
             },
-            description: { 
-              type: "string", 
-              description: "Popis kolekce" 
+            description: {
+              type: "string",
+              description: "Popis kolekce"
             },
             tags: {
               type: "array",
@@ -202,13 +316,13 @@ server.setRequestHandler('tools/list', async () => {
         inputSchema: {
           type: "object",
           properties: {
-            collectionId: { 
-              type: "string", 
-              description: "ID kolekce" 
+            collectionId: {
+              type: "string",
+              description: "ID kolekce"
             },
-            recipeId: { 
-              type: "string", 
-              description: "ID receptu" 
+            recipeId: {
+              type: "string",
+              description: "ID receptu"
             }
           },
           required: ["collectionId", "recipeId"]
@@ -220,22 +334,22 @@ server.setRequestHandler('tools/list', async () => {
         inputSchema: {
           type: "object",
           properties: {
-            query: { 
-              type: "string", 
-              description: "Vyhledávací dotaz" 
+            query: {
+              type: "string",
+              description: "Vyhledávací dotaz"
             },
             tags: {
               type: "array",
               description: "Filtrování podle tagů",
               items: { type: "string" }
             },
-            difficulty: { 
-              type: "number", 
-              description: "Filtrování podle obtížnosti (1-5)" 
+            difficulty: {
+              type: "number",
+              description: "Filtrování podle obtížnosti (1-5)"
             },
-            maxTime: { 
-              type: "number", 
-              description: "Maximální celkový čas přípravy v minutách" 
+            maxTime: {
+              type: "number",
+              description: "Maximální celkový čas přípravy v minutách"
             }
           },
           required: ["query"]
@@ -248,7 +362,7 @@ server.setRequestHandler('tools/list', async () => {
 // Handler pro volání tools
 server.setRequestHandler('tools/call', async (request) => {
   const { name, arguments: args } = request.params;
-  
+
   try {
     switch (name) {
       case 'get_recipes':
@@ -283,47 +397,48 @@ server.setRequestHandler('tools/call', async (request) => {
 
 // API helper funkce
 async function apiCall(endpoint, method = 'GET', body = null) {
+  const token = await getValidToken();
   const url = `${COOKIDOO_API_URL}${endpoint}`;
-  
+
   const options = {
     method,
     headers: {
-      'Authorization': `Bearer ${COOKIDOO_TOKEN}`,
+      'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     }
   };
-  
+
   if (body) {
     options.body = JSON.stringify(body);
   }
-  
+
   const response = await fetch(url, options);
-  
+
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(`HTTP ${response.status}: ${errorText}`);
   }
-  
+
   return response.json();
 }
 
 // Tool implementace
 async function getRecipes(args) {
   const { search, limit = 10 } = args || {};
-  
+
   let endpoint = `/recipes?limit=${limit}`;
   if (search) {
     endpoint += `&search=${encodeURIComponent(search)}`;
   }
-  
+
   const data = await apiCall(endpoint);
-  
+
   return {
     content: [
       {
         type: "text",
         text: `📚 Načteno ${data.items?.length || 0} receptů:\n\n` +
-              (data.items || []).map(recipe => 
+              (data.items || []).map(recipe =>
                 `🍽️ **${recipe.name}**\n` +
                 `   📝 ${recipe.description || 'Bez popisu'}\n` +
                 `   ⏱️ ${recipe.preparationTimeMinutes + recipe.cookingTimeMinutes} min\n` +
@@ -338,7 +453,7 @@ async function getRecipes(args) {
 async function getRecipe(args) {
   const { id } = args;
   const recipe = await apiCall(`/recipes/${id}`);
-  
+
   return {
     content: [
       {
@@ -358,7 +473,7 @@ async function getRecipe(args) {
 
 async function createRecipe(args) {
   const recipe = await apiCall('/recipes', 'POST', args);
-  
+
   return {
     content: [
       {
@@ -374,13 +489,13 @@ async function createRecipe(args) {
 async function getCollections(args) {
   const { limit = 10 } = args || {};
   const data = await apiCall(`/collections?limit=${limit}`);
-  
+
   return {
     content: [
       {
         type: "text",
         text: `📚 Načteno ${data.items?.length || 0} kolekcí:\n\n` +
-              (data.items || []).map(collection => 
+              (data.items || []).map(collection =>
                 `📁 **${collection.name}**\n` +
                 `   📝 ${collection.description || 'Bez popisu'}\n` +
                 `   📊 ${collection.recipeCount || 0} receptů\n` +
@@ -393,7 +508,7 @@ async function getCollections(args) {
 
 async function createCollection(args) {
   const collection = await apiCall('/collections', 'POST', args);
-  
+
   return {
     content: [
       {
@@ -408,7 +523,7 @@ async function createCollection(args) {
 async function addRecipeToCollection(args) {
   const { collectionId, recipeId } = args;
   await apiCall(`/collections/${collectionId}/recipes`, 'POST', { recipeId });
-  
+
   return {
     content: [
       {
@@ -421,9 +536,9 @@ async function addRecipeToCollection(args) {
 
 async function searchRecipes(args) {
   const { query, tags, difficulty, maxTime } = args;
-  
+
   let endpoint = `/recipes/search?q=${encodeURIComponent(query)}`;
-  
+
   if (tags && tags.length > 0) {
     endpoint += `&tags=${tags.map(encodeURIComponent).join(',')}`;
   }
@@ -433,16 +548,16 @@ async function searchRecipes(args) {
   if (maxTime) {
     endpoint += `&maxTime=${maxTime}`;
   }
-  
+
   const data = await apiCall(endpoint);
-  
+
   return {
     content: [
       {
-        type: "text", 
+        type: "text",
         text: `🔍 Výsledky vyhledávání pro "${query}":\n\n` +
               `📊 Nalezeno ${data.items?.length || 0} receptů\n\n` +
-              (data.items || []).map(recipe => 
+              (data.items || []).map(recipe =>
                 `🍽️ **${recipe.name}** (${recipe.id})\n` +
                 `   📝 ${recipe.description || 'Bez popisu'}\n` +
                 `   ⏱️ ${(recipe.preparationTimeMinutes || 0) + (recipe.cookingTimeMinutes || 0)} min\n` +
@@ -471,4 +586,7 @@ server.connect(transport).catch(error => {
   process.exit(1);
 });
 
-console.error('🚀 Cookidoo MCP Server je spuštěn...'); 
+// Přihlásit se při startu
+await getValidToken();
+
+console.error('🚀 Cookidoo MCP Server je spuštěn s automatickým přihlášením...');

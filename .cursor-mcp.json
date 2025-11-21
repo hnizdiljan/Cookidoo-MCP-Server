@@ -5,12 +5,13 @@
       "args": ["mcp-client.js"],
       "env": {
         "COOKIDOO_API_URL": "http://localhost:5555/api/v1",
-        "COOKIDOO_TOKEN": "YOUR_JWT_TOKEN_HERE"
+        "COOKIDOO_EMAIL": "vas-email@cookidoo.com",
+        "COOKIDOO_PASSWORD": "vase-heslo"
       },
       "alwaysAllow": ["get_recipes", "get_collections", "get_recipe", "search_recipes"],
       "requireApproval": ["create_recipe", "create_collection", "add_recipe_to_collection"],
       "workspaceRoot": ".",
-      "description": "Cookidoo MCP Server - správa receptů z Cookidoo platformy"
+      "description": "Cookidoo MCP Server - správa receptů z Cookidoo platformy s automatickým přihlášením"
     }
   },
   "defaults": {
