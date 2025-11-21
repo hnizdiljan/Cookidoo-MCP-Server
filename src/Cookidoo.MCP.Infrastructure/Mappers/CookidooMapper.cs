@@ -56,13 +56,14 @@ public static class CookidooMapper
 
     /// <summary>
     /// Převede krok přípravy na DTO
+    /// Automaticky formátuje Thermomix parametry do správného formátu
     /// </summary>
     public static CookidooInstructionDto ToInstructionDto(CookingStep step)
     {
         return new CookidooInstructionDto
         {
             Type = "STEP",
-            Text = step.Text
+            Text = step.GetFormattedText() // Použije GetFormattedText() pro správné formátování Thermomix parametrů
         };
     }
 

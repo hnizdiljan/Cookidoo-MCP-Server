@@ -253,6 +253,7 @@ Pro maximální kompatibilitu s Thermomix používejte tento formát:
 Pro více informací viz:
 
 - [README.md](README.md) - Přehled projektu a architektura
+- [THERMOMIX_GUIDE.md](THERMOMIX_GUIDE.md) - **Průvodce Thermomix parametry** 🌟
 - [MCP_GUIDE.md](MCP_GUIDE.md) - Detailní průvodce MCP protokolem
 - [COOKIDOO_API_DOCUMENTATION.md](COOKIDOO_API_DOCUMENTATION.md) - Dokumentace Cookidoo API
 - [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) - Technický přehled implementace

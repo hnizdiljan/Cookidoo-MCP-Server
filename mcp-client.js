@@ -95,13 +95,44 @@ server.setRequestHandler('tools/list', async () => {
             },
             steps: {
               type: "array",
-              description: "Postup přípravy",
+              description: "Postup přípravy - kroky receptu s Thermomix parametry",
               items: {
                 type: "object",
                 properties: {
-                  text: { type: "string" },
-                  order: { type: "number" }
-                }
+                  text: {
+                    type: "string",
+                    description: "Popis kroku (např. 'zerkleinern', 'kochen', 'vermischen')"
+                  },
+                  order: {
+                    type: "number",
+                    description: "Pořadí kroku (1, 2, 3...)"
+                  },
+                  timeSeconds: {
+                    type: "number",
+                    description: "Čas v sekundách (např. 90 pro 1,5 minuty, 360 pro 6 minut)"
+                  },
+                  temperature: {
+                    type: "number",
+                    description: "Teplota v °C (0-120, vynechte pro bez ohřevu)"
+                  },
+                  speed: {
+                    type: "number",
+                    description: "Rychlost mixéru (1-10, např. 2 pro pomalé míchání, 8 pro sekání)"
+                  },
+                  useTurbo: {
+                    type: "boolean",
+                    description: "Použít Turbo režim (true/false)"
+                  },
+                  useReverseRotation: {
+                    type: "boolean",
+                    description: "Použít levo-otáčky - šetrné míchání (true/false)"
+                  },
+                  useVaroma: {
+                    type: "boolean",
+                    description: "Použít Varoma režim pro vaření v páře (true/false)"
+                  }
+                },
+                required: ["text", "order"]
               }
             },
             preparationTimeMinutes: { 

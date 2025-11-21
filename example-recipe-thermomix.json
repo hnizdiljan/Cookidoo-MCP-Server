@@ -1,0 +1,134 @@
+{
+  "name": "Zeleninová polévka s bylinkami",
+  "description": "Zdravá a chutná zeleninová polévka připravená v Thermomixu. Ideální pro oběd nebo večeři.",
+  "ingredients": [
+    {
+      "text": "1 cibule (nakrájená)",
+      "name": "cibule",
+      "quantity": 1,
+      "unit": "ks"
+    },
+    {
+      "text": "2 stroužky česneku",
+      "name": "česnek",
+      "quantity": 2,
+      "unit": "ks"
+    },
+    {
+      "text": "30g olivového oleje",
+      "name": "olivový olej",
+      "quantity": 30,
+      "unit": "g"
+    },
+    {
+      "text": "200g mrkve",
+      "name": "mrkev",
+      "quantity": 200,
+      "unit": "g"
+    },
+    {
+      "text": "200g celeru",
+      "name": "celer",
+      "quantity": 200,
+      "unit": "g"
+    },
+    {
+      "text": "300g brambor",
+      "name": "brambory",
+      "quantity": 300,
+      "unit": "g"
+    },
+    {
+      "text": "800ml zeleninového vývaru",
+      "name": "zeleninový vývar",
+      "quantity": 800,
+      "unit": "ml"
+    },
+    {
+      "text": "Sůl a pepř podle chuti",
+      "name": "koření",
+      "quantity": null,
+      "unit": ""
+    },
+    {
+      "text": "Čerstvé bylinky (petržel, pažitka)",
+      "name": "bylinky",
+      "quantity": null,
+      "unit": ""
+    }
+  ],
+  "steps": [
+    {
+      "text": "Nakrájejte cibuli a česnek na kousky.",
+      "order": 1
+    },
+    {
+      "text": "zerkleinern",
+      "order": 2,
+      "timeSeconds": 5,
+      "speed": 5,
+      "temperature": null,
+      "useTurbo": false,
+      "useReverseRotation": false,
+      "useVaroma": false
+    },
+    {
+      "text": "andünsten",
+      "order": 3,
+      "timeSeconds": 180,
+      "speed": 1,
+      "temperature": 100,
+      "useTurbo": false,
+      "useReverseRotation": false,
+      "useVaroma": false
+    },
+    {
+      "text": "Přidejte nakrájenou mrkev, celer a brambory.",
+      "order": 4
+    },
+    {
+      "text": "zerkleinern",
+      "order": 5,
+      "timeSeconds": 3,
+      "speed": 4,
+      "temperature": null,
+      "useTurbo": false,
+      "useReverseRotation": false,
+      "useVaroma": false
+    },
+    {
+      "text": "Přidejte zeleninový vývar, sůl a pepř.",
+      "order": 6
+    },
+    {
+      "text": "kochen",
+      "order": 7,
+      "timeSeconds": 1200,
+      "speed": 2,
+      "temperature": 100,
+      "useTurbo": false,
+      "useReverseRotation": false,
+      "useVaroma": false
+    },
+    {
+      "text": "pürieren",
+      "order": 8,
+      "timeSeconds": 30,
+      "speed": 9,
+      "temperature": null,
+      "useTurbo": false,
+      "useReverseRotation": false,
+      "useVaroma": false
+    },
+    {
+      "text": "Ozdobte čerstvými bylinkami a podávejte.",
+      "order": 9
+    }
+  ],
+  "preparationTimeMinutes": 10,
+  "cookingTimeMinutes": 25,
+  "portions": 4,
+  "difficulty": 1,
+  "tags": ["polévka", "zelenina", "zdravé", "vegetariánské", "thermomix"],
+  "notes": "Pro hustší polévku můžete přidat méně vývaru. Pro jemnější konzistenci mixujte déle na vyšší rychlosti."
+}
