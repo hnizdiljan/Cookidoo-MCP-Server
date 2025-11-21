@@ -2,6 +2,10 @@
 
 MCP Server pro správu vlastních receptů a kolekcí receptů uživatelů platformy Cookidoo® od společnosti Vorwerk (pro zařízení Thermomix®).
 
+## 🎯 Rychlý Start
+
+**Nový uživatel?** Začněte s [QUICK_START.md](QUICK_START.md) - kompletní průvodce v češtině, jak nastavit a používat Cookidoo MCP Server v Cursoru!
+
 ## 🚀 Přehled
 
 Tento projekt poskytuje backendové služby pro:

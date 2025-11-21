@@ -1,0 +1,104 @@
+{
+  "name": "Čokoládový dort s malinami",
+  "description": "Lahodný čokoládový dort s čerstvými malinami, ideální pro zvláštní příležitosti. Tento recept kombinuje bohatou čokoládovou chuť s osvěžujícími malinami.",
+  "ingredients": [
+    {
+      "text": "250g hladké mouky",
+      "name": "mouka hladká",
+      "quantity": 250,
+      "unit": "g"
+    },
+    {
+      "text": "200g cukru krupice",
+      "name": "cukr",
+      "quantity": 200,
+      "unit": "g"
+    },
+    {
+      "text": "80g kakaa",
+      "name": "kakao",
+      "quantity": 80,
+      "unit": "g"
+    },
+    {
+      "text": "4 vejce",
+      "name": "vejce",
+      "quantity": 4,
+      "unit": "ks"
+    },
+    {
+      "text": "200ml mléka",
+      "name": "mléko",
+      "quantity": 200,
+      "unit": "ml"
+    },
+    {
+      "text": "150g másla",
+      "name": "máslo",
+      "quantity": 150,
+      "unit": "g"
+    },
+    {
+      "text": "1 lžička prášku do pečiva",
+      "name": "prášek do pečiva",
+      "quantity": 1,
+      "unit": "lžička"
+    },
+    {
+      "text": "200g čerstvých malin",
+      "name": "maliny",
+      "quantity": 200,
+      "unit": "g"
+    },
+    {
+      "text": "100g hořké čokolády",
+      "name": "čokoláda",
+      "quantity": 100,
+      "unit": "g"
+    }
+  ],
+  "steps": [
+    {
+      "text": "Předehřejte troubu na 180°C. Vymaštěte a vysypte formu na dort.",
+      "order": 1
+    },
+    {
+      "text": "Do mixovací nádoby Thermomixu vložte máslo a cukr. Mixujte 20 sekund/rychlost 4.",
+      "order": 2
+    },
+    {
+      "text": "Přidejte vejce a mixujte dalších 20 sekund/rychlost 4.",
+      "order": 3
+    },
+    {
+      "text": "Přidejte mouku, kakao a prášek do pečiva. Mixujte 30 sekund/rychlost 4.",
+      "order": 4
+    },
+    {
+      "text": "Pomalu přidávejte mléko okénkem v míchacím víku při rychlosti 3, dokud nevznikne hladké těsto.",
+      "order": 5
+    },
+    {
+      "text": "Nasekejte čokoládu 5 sekund/rychlost 5 a vmíchejte ji do těsta.",
+      "order": 6
+    },
+    {
+      "text": "Nalijte polovinu těsta do formy, rozmístěte polovinu malin, přidejte zbytek těsta a dozdobte zbylými malinami.",
+      "order": 7
+    },
+    {
+      "text": "Pečte v troubě 45-50 minut, dokud dort neprojde testem špejlí.",
+      "order": 8
+    },
+    {
+      "text": "Nechte dort vychladnout ve formě 10 minut, pak přeložte na mřížku a nechte úplně vychladnout.",
+      "order": 9
+    }
+  ],
+  "preparationTimeMinutes": 20,
+  "cookingTimeMinutes": 50,
+  "portions": 8,
+  "difficulty": 2,
+  "tags": ["dezert", "čokoláda", "dort", "maliny", "pečení", "slavnostní"],
+  "notes": "Pro ještě intenzivnější čokoládovou chuť můžete přidat 1 lžičku instantní kávy do těsta. Dort je nejlepší druhý den, kdy se chutě lépe spojí."
+}
