@@ -181,6 +181,114 @@ public class CookingStep
     /// Pořadí kroku
     /// </summary>
     public int Order { get; set; }
+
+    // === Thermomix specifické parametry ===
+
+    /// <summary>
+    /// Čas v sekundách (např. 90 pro 1,5 minuty)
+    /// </summary>
+    public int? TimeSeconds { get; set; }
+
+    /// <summary>
+    /// Teplota v °C (0-120, null = bez ohřevu)
+    /// </summary>
+    [Range(0, 120)]
+    public int? Temperature { get; set; }
+
+    /// <summary>
+    /// Rychlost mixéru (1-10, nebo speciální hodnoty)
+    /// Thermomix TM6: 1-10, plus speciální režimy
+    /// </summary>
+    [Range(0, 10)]
+    public int? Speed { get; set; }
+
+    /// <summary>
+    /// Použití vážení ("Turbo" rychlost)
+    /// </summary>
+    public bool? UseTurbo { get; set; }
+
+    /// <summary>
+    /// Použití levo-otáček (šetrné míchání)
+    /// </summary>
+    public bool? UseReverseRotation { get; set; }
+
+    /// <summary>
+    /// Použití Varoma režimu (pro vaření v páře)
+    /// </summary>
+    public bool? UseVaroma { get; set; }
+
+    /// <summary>
+    /// Generuje formátovaný text pro Cookidoo API
+    /// Formát: "{čas}/{teplota}/{rychlost} {text}"
+    /// Příklad: "6 Min./100°C/Stufe 2 kochen"
+    /// </summary>
+    public string GetFormattedText()
+    {
+        if (!TimeSeconds.HasValue && !Temperature.HasValue && !Speed.HasValue)
+        {
+            // Žádné Thermomix parametry - vrátíme jen text
+            return Text;
+        }
+
+        var parts = new List<string>();
+
+        // Čas
+        if (TimeSeconds.HasValue)
+        {
+            var seconds = TimeSeconds.Value;
+            if (seconds < 60)
+            {
+                parts.Add($"{seconds} Sek.");
+            }
+            else
+            {
+                var minutes = seconds / 60;
+                var remainingSeconds = seconds % 60;
+                if (remainingSeconds > 0)
+                {
+                    parts.Add($"{minutes} Min. {remainingSeconds} Sek.");
+                }
+                else
+                {
+                    parts.Add($"{minutes} Min.");
+                }
+            }
+        }
+
+        // Teplota
+        if (Temperature.HasValue)
+        {
+            if (UseVaroma == true)
+            {
+                parts.Add("Varoma");
+            }
+            else
+            {
+                parts.Add($"{Temperature}°C");
+            }
+        }
+
+        // Rychlost
+        if (Speed.HasValue)
+        {
+            if (UseTurbo == true)
+            {
+                parts.Add("Turbo");
+            }
+            else
+            {
+                var speedText = $"Stufe {Speed}";
+                if (UseReverseRotation == true)
+                {
+                    speedText = $"{speedText} Linkslauf";
+                }
+                parts.Add(speedText);
+            }
+        }
+
+        var thermomixParams = string.Join("/", parts);
+        return $"<nobr>{thermomixParams}</nobr> {Text}";
+    }
 }
 
 /// <summary>

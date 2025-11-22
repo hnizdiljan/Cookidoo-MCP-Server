@@ -2,14 +2,21 @@
 
 MCP Server pro správu vlastních receptů a kolekcí receptů uživatelů platformy Cookidoo® od společnosti Vorwerk (pro zařízení Thermomix®).
 
+## 🎯 Rychlý Start
+
+**Nový uživatel?** Začněte s [QUICK_START.md](QUICK_START.md) - kompletní průvodce v češtině, jak nastavit a používat Cookidoo MCP Server v Cursoru!
+
 ## 🚀 Přehled
 
 Tento projekt poskytuje backendové služby pro:
-- **Vytváření nových receptů** kompatibilních s formátem Cookidoo
+- **Vytváření nových receptů** kompatibilních s formátem Cookidoo včetně plné podpory Thermomix parametrů
 - **Editaci existujících vlastních receptů** synchronizovaných s Cookidoo
 - **Vytváření vlastních kolekcí receptů**
 - **Editaci detailů kolekcí receptů**
 - **Přidávání a odebírání receptů do/z kolekcí**
+- **Správu nákupního seznamu** (ingredience z receptů + vlastní položky)
+- **Plánování jídel** (týdenní kalendář receptů)
+- **Automatické přihlášení** s cachováním tokenů
 - **Bezpečnou autentizaci** vůči Cookidoo API
 
 ## 🏗️ Architektura
@@ -207,6 +214,85 @@ Odebrání receptu z kolekce.
 #### GET `/api/v1/collections/{id}/recipes`
 Získání receptů v kolekci.
 
+### Nákupní seznam
+
+#### GET `/api/v1/shoppinglist`
+Získá kompletní nákupní seznam s ingrediencemi z receptů a vlastními položkami.
+
+#### POST `/api/v1/shoppinglist/recipes`
+Přidá ingredience z receptů do nákupního seznamu.
+
+**Request:**
+```json
+{
+  "recipeIds": ["recipe-id-1", "recipe-id-2"]
+}
+```
+
+#### DELETE `/api/v1/shoppinglist/recipes`
+Odebere ingredience receptů z nákupního seznamu.
+
+#### PATCH `/api/v1/shoppinglist/ingredients/ownership`
+Označí ingredience jako zakoupené.
+
+**Request:**
+```json
+{
+  "ingredientIds": ["ing-1", "ing-2"]
+}
+```
+
+#### POST `/api/v1/shoppinglist/items`
+Přidá vlastní položky do nákupního seznamu.
+
+**Request:**
+```json
+{
+  "items": ["Toaletní papír", "Máslo"]
+}
+```
+
+#### PATCH `/api/v1/shoppinglist/items/ownership`
+Označí vlastní položky jako zakoupené.
+
+#### DELETE `/api/v1/shoppinglist/items`
+Odebere vlastní položky z nákupního seznamu.
+
+#### DELETE `/api/v1/shoppinglist`
+Vymaže celý nákupní seznam.
+
+### Plánování jídel
+
+#### GET `/api/v1/mealplan/week`
+Získá plán jídel pro daný týden.
+
+**Parametry:**
+- `date` (string): Datum v týdnu (formát YYYY-MM-DD), volitelné
+
+#### GET `/api/v1/mealplan/day`
+Získá plán jídel pro konkrétní den.
+
+**Parametry:**
+- `date` (string): Datum (formát YYYY-MM-DD)
+
+#### POST `/api/v1/mealplan/recipes`
+Přidá recepty do kalendáře.
+
+**Request:**
+```json
+{
+  "date": "2025-11-22",
+  "recipeIds": ["recipe-id-1"],
+  "mealType": "Oběd"
+}
+```
+
+#### DELETE `/api/v1/mealplan/recipes/{recipeId}`
+Odebere recept z kalendáře.
+
+**Parametry:**
+- `date` (string): Datum (formát YYYY-MM-DD)
+
 ## 🔒 Bezpečnost
 
 - **JWT autentizace**: Všechny endpointy (kromě přihlášení) vyžadují platný JWT token
@@ -244,6 +330,13 @@ Aplikace používá Serilog pro strukturované logování:
 
 3. **Databáze**: Aplikace momentálně nepoužívá perzistentní úložiště. Všechna data jsou získávána z Cookidoo API.
 
+## 📖 Dokumentace
+
+- **[QUICK_START.md](QUICK_START.md)** - Rychlý start průvodce pro nové uživatele
+- **[THERMOMIX_GUIDE.md](THERMOMIX_GUIDE.md)** - Kompletní průvodce Thermomix parametry
+- **[AUTO_LOGIN_GUIDE.md](AUTO_LOGIN_GUIDE.md)** - Průvodce automatickým přihlášením
+- **[NEW_TOOLS_PROPOSAL.md](NEW_TOOLS_PROPOSAL.md)** - Analýza a návrh nových MCP tools
+
 ## 🔮 Budoucí rozšíření
 
 - **Import receptů** z jiných formátů
@@ -251,7 +344,8 @@ Aplikace používá Serilog pro strukturované logování:
 - **Offline podpora** s cachingem
 - **Sdílení receptů** mezi uživateli
 - **Nutriční kalkulačka**
-- **Plánování jídel**
+- **Oficiální Cookidoo kolekce** (managed collections)
+- **Rozšířené informace o receptu** (nutriční hodnoty, nádobí, kategorie)
 
 ## 🤝 Přispívání
 
