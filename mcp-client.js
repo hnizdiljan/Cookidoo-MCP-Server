@@ -354,6 +354,168 @@ server.setRequestHandler('tools/list', async () => {
           },
           required: ["query"]
         }
+      },
+      // === NÁKUPNÍ SEZNAM ===
+      {
+        name: "get_shopping_list",
+        description: "Získá kompletní nákupní seznam s ingrediencemi z receptů a vlastními položkami",
+        inputSchema: {
+          type: "object",
+          properties: {}
+        }
+      },
+      {
+        name: "add_recipes_to_shopping_list",
+        description: "Přidá ingredience z receptů do nákupního seznamu",
+        inputSchema: {
+          type: "object",
+          properties: {
+            recipeIds: {
+              type: "array",
+              description: "ID receptů k přidání",
+              items: { type: "string" }
+            }
+          },
+          required: ["recipeIds"]
+        }
+      },
+      {
+        name: "remove_recipes_from_shopping_list",
+        description: "Odebere ingredience receptů z nákupního seznamu",
+        inputSchema: {
+          type: "object",
+          properties: {
+            recipeIds: {
+              type: "array",
+              description: "ID receptů k odebrání",
+              items: { type: "string" }
+            }
+          },
+          required: ["recipeIds"]
+        }
+      },
+      {
+        name: "mark_ingredients_as_owned",
+        description: "Označí ingredience jako již zakoupené (zaškrtne je)",
+        inputSchema: {
+          type: "object",
+          properties: {
+            ingredientIds: {
+              type: "array",
+              description: "ID ingrediencí k označení",
+              items: { type: "string" }
+            }
+          },
+          required: ["ingredientIds"]
+        }
+      },
+      {
+        name: "add_shopping_items",
+        description: "Přidá vlastní položky do nákupního seznamu (ne z receptu)",
+        inputSchema: {
+          type: "object",
+          properties: {
+            items: {
+              type: "array",
+              description: "Názvy položek k přidání",
+              items: { type: "string" }
+            }
+          },
+          required: ["items"]
+        }
+      },
+      {
+        name: "mark_shopping_items_as_owned",
+        description: "Označí vlastní položky jako zakoupené",
+        inputSchema: {
+          type: "object",
+          properties: {
+            itemIds: {
+              type: "array",
+              description: "ID položek k označení",
+              items: { type: "string" }
+            }
+          },
+          required: ["itemIds"]
+        }
+      },
+      {
+        name: "remove_shopping_items",
+        description: "Odebere vlastní položky z nákupního seznamu",
+        inputSchema: {
+          type: "object",
+          properties: {
+            itemIds: {
+              type: "array",
+              description: "ID položek k odebrání",
+              items: { type: "string" }
+            }
+          },
+          required: ["itemIds"]
+        }
+      },
+      {
+        name: "clear_shopping_list",
+        description: "Vymaže celý nákupní seznam",
+        inputSchema: {
+          type: "object",
+          properties: {}
+        }
+      },
+      // === PLÁNOVÁNÍ JÍDEL ===
+      {
+        name: "get_weekly_meal_plan",
+        description: "Získá plán jídel pro daný týden",
+        inputSchema: {
+          type: "object",
+          properties: {
+            date: {
+              type: "string",
+              description: "Datum v týdnu (formát YYYY-MM-DD), volitelné - výchozí je tento týden"
+            }
+          }
+        }
+      },
+      {
+        name: "add_recipes_to_meal_plan",
+        description: "Přidá recepty do kalendáře na konkrétní den",
+        inputSchema: {
+          type: "object",
+          properties: {
+            date: {
+              type: "string",
+              description: "Datum ve formátu YYYY-MM-DD"
+            },
+            recipeIds: {
+              type: "array",
+              description: "ID receptů k přidání",
+              items: { type: "string" }
+            },
+            mealType: {
+              type: "string",
+              description: "Typ jídla: Snídaně, Oběd, Večeře (volitelné)"
+            }
+          },
+          required: ["date", "recipeIds"]
+        }
+      },
+      {
+        name: "remove_recipe_from_meal_plan",
+        description: "Odebere recept z kalendáře z konkrétního dne",
+        inputSchema: {
+          type: "object",
+          properties: {
+            recipeId: {
+              type: "string",
+              description: "ID receptu k odebrání"
+            },
+            date: {
+              type: "string",
+              description: "Datum ve formátu YYYY-MM-DD"
+            }
+          },
+          required: ["recipeId", "date"]
+        }
       }
     ]
   };
@@ -379,6 +541,30 @@ server.setRequestHandler('tools/call', async (request) => {
         return await addRecipeToCollection(args);
       case 'search_recipes':
         return await searchRecipes(args);
+      // Shopping list
+      case 'get_shopping_list':
+        return await getShoppingList(args);
+      case 'add_recipes_to_shopping_list':
+        return await addRecipesToShoppingList(args);
+      case 'remove_recipes_from_shopping_list':
+        return await removeRecipesFromShoppingList(args);
+      case 'mark_ingredients_as_owned':
+        return await markIngredientsAsOwned(args);
+      case 'add_shopping_items':
+        return await addShoppingItems(args);
+      case 'mark_shopping_items_as_owned':
+        return await markShoppingItemsAsOwned(args);
+      case 'remove_shopping_items':
+        return await removeShoppingItems(args);
+      case 'clear_shopping_list':
+        return await clearShoppingList(args);
+      // Meal planning
+      case 'get_weekly_meal_plan':
+        return await getWeeklyMealPlan(args);
+      case 'add_recipes_to_meal_plan':
+        return await addRecipesToMealPlan(args);
+      case 'remove_recipe_from_meal_plan':
+        return await removeRecipeFromMealPlan(args);
       default:
         throw new Error(`Neznámý nástroj: ${name}`);
     }
@@ -563,6 +749,189 @@ async function searchRecipes(args) {
                 `   ⏱️ ${(recipe.preparationTimeMinutes || 0) + (recipe.cookingTimeMinutes || 0)} min\n` +
                 `   📊 Obtížnost: ${recipe.difficulty}/5\n`
               ).join('\n')
+      }
+    ]
+  };
+}
+
+// === SHOPPING LIST FUNCTIONS ===
+
+async function getShoppingList(args) {
+  const data = await apiCall('/shoppinglist');
+
+  const recipeIngredientsText = (data.recipeIngredients || []).map(ing =>
+    `${ing.isOwned ? '☑️' : '☐'} ${ing.text} (${ing.recipeName})`
+  ).join('\n  ');
+
+  const additionalItemsText = (data.additionalItems || []).map(item =>
+    `${item.isOwned ? '☑️' : '☐'} ${item.name}`
+  ).join('\n  ');
+
+  return {
+    content: [
+      {
+        type: "text",
+        text: `📝 Nákupní seznam:\n\n` +
+              `🍽️ Z receptů:\n  ${recipeIngredientsText || '(žádné ingredience)'}\n\n` +
+              `📋 Vlastní položky:\n  ${additionalItemsText || '(žádné položky)'}`
+      }
+    ]
+  };
+}
+
+async function addRecipesToShoppingList(args) {
+  const { recipeIds } = args;
+  const data = await apiCall('/shoppinglist/recipes', 'POST', { recipeIds });
+
+  return {
+    content: [
+      {
+        type: "text",
+        text: `✅ ${data.message || `Přidáno ${recipeIds.length} receptů do nákupního seznamu`}`
+      }
+    ]
+  };
+}
+
+async function removeRecipesFromShoppingList(args) {
+  const { recipeIds } = args;
+  const data = await apiCall('/shoppinglist/recipes', 'DELETE', { recipeIds });
+
+  return {
+    content: [
+      {
+        type: "text",
+        text: `✅ ${data.message || `Odebráno ${recipeIds.length} receptů z nákupního seznamu`}`
+      }
+    ]
+  };
+}
+
+async function markIngredientsAsOwned(args) {
+  const { ingredientIds } = args;
+  const data = await apiCall('/shoppinglist/ingredients/ownership', 'PATCH', { ingredientIds });
+
+  return {
+    content: [
+      {
+        type: "text",
+        text: `✅ ${data.message || `Označeno ${ingredientIds.length} ingrediencí jako zakoupených`}`
+      }
+    ]
+  };
+}
+
+async function addShoppingItems(args) {
+  const { items } = args;
+  const data = await apiCall('/shoppinglist/items', 'POST', { items });
+
+  return {
+    content: [
+      {
+        type: "text",
+        text: `✅ ${data.message || `Přidáno ${items.length} položek do nákupního seznamu`}`
+      }
+    ]
+  };
+}
+
+async function markShoppingItemsAsOwned(args) {
+  const { itemIds } = args;
+  const data = await apiCall('/shoppinglist/items/ownership', 'PATCH', { itemIds });
+
+  return {
+    content: [
+      {
+        type: "text",
+        text: `✅ ${data.message || `Označeno ${itemIds.length} položek jako zakoupených`}`
+      }
+    ]
+  };
+}
+
+async function removeShoppingItems(args) {
+  const { itemIds } = args;
+  const data = await apiCall('/shoppinglist/items', 'DELETE', { itemIds });
+
+  return {
+    content: [
+      {
+        type: "text",
+        text: `✅ ${data.message || `Odebráno ${itemIds.length} položek z nákupního seznamu`}`
+      }
+    ]
+  };
+}
+
+async function clearShoppingList(args) {
+  const data = await apiCall('/shoppinglist', 'DELETE');
+
+  return {
+    content: [
+      {
+        type: "text",
+        text: `✅ ${data.message || 'Nákupní seznam byl vymazán'}`
+      }
+    ]
+  };
+}
+
+// === MEAL PLANNING FUNCTIONS ===
+
+async function getWeeklyMealPlan(args) {
+  const { date } = args || {};
+
+  let endpoint = '/mealplan/week';
+  if (date) {
+    endpoint += `?date=${date}`;
+  }
+
+  const data = await apiCall(endpoint);
+
+  const weekText = `📅 Plán jídel pro týden ${new Date(data.weekStart).toLocaleDateString('cs-CZ')} - ${new Date(data.weekEnd).toLocaleDateString('cs-CZ')}:\n\n`;
+
+  const daysText = (data.days || []).map(day => {
+    const dayDate = new Date(day.date).toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'numeric' });
+    const mealsText = (day.meals || []).length > 0
+      ? day.meals.map(meal => `  🍽️ ${meal.mealType}: ${meal.recipeName} (${meal.totalTime} min)`).join('\n')
+      : '  (Žádný plán)';
+
+    return `${day.dayName} ${dayDate}:\n${mealsText}`;
+  }).join('\n\n');
+
+  return {
+    content: [
+      {
+        type: "text",
+        text: weekText + daysText
+      }
+    ]
+  };
+}
+
+async function addRecipesToMealPlan(args) {
+  const { date, recipeIds, mealType } = args;
+  const data = await apiCall('/mealplan/recipes', 'POST', { date, recipeIds, mealType });
+
+  return {
+    content: [
+      {
+        type: "text",
+        text: `✅ ${data.message || `Přidáno ${recipeIds.length} receptů do plánu na ${new Date(date).toLocaleDateString('cs-CZ')}`}`
+      }
+    ]
+  };
+}
+
+async function removeRecipeFromMealPlan(args) {
+  const { recipeId, date } = args;
+  const data = await apiCall(`/mealplan/recipes/${recipeId}?date=${date}`, 'DELETE');
+
+  return {
+    content: [
+      {
+        type: "text",
+        text: `✅ ${data.message || `Recept odebrán z plánu pro ${new Date(date).toLocaleDateString('cs-CZ')}`}`
       }
     ]
   };
